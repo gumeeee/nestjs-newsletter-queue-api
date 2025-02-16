@@ -1,15 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { CreateNewsletterDto } from './dto/create-newsletter.dto';
 import { UpdateNewsletterDto } from './dto/update-newsletter.dto';
+import { InjectModel } from '@nestjs/sequelize';
+import { Newsletter } from './entities/newsletter.entity';
 
 @Injectable()
 export class NewsletterService {
+  constructor(
+    @InjectModel(Newsletter)
+    private newsletterModel: typeof Newsletter,
+  ) {}
+
   create(createNewsletterDto: CreateNewsletterDto) {
-    return 'This action adds a new newsletter';
+    return this.newsletterModel.create(createNewsletterDto as any);
   }
 
   findAll() {
-    return `This action returns all newsletter`;
+    return this.newsletterModel.findAll();
   }
 
   findOne(id: number) {

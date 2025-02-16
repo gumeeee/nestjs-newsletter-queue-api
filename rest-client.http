@@ -1,0 +1,9 @@
+GET http://localhost:3000/newsletter
+
+###
+POST http://localhost:3000/newsletter
+Content-Type: application/json
+
+{
+    "content": "This is a test newsletter"
+}
