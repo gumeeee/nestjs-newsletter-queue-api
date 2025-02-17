@@ -4,6 +4,8 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Interval } from '@nestjs/schedule';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class NewsletterCountService {
@@ -11,10 +13,13 @@ export class NewsletterCountService {
 
   constructor(
     @InjectModel(Newsletter)
-    private newslatter: typeof Newsletter,
+    private newsletter: typeof Newsletter,
 
     @Inject(CACHE_MANAGER)
     private cacheManger: Cache,
+
+    @InjectQueue('emails')
+    private emailsQueue: Queue,
   ) {}
 
   @Interval(10000)
@@ -26,7 +31,7 @@ export class NewsletterCountService {
 
     console.log(`Offsets: ${offset}`);
 
-    const newsletters: Newsletter[] = await this.newslatter.findAll({
+    const newsletters: Newsletter[] = await this.newsletter.findAll({
       offset,
       limit: this.limit,
     });
@@ -38,6 +43,7 @@ export class NewsletterCountService {
       await this.cacheManger.set('newsletter-offset', offset + this.limit, ttl);
 
       console.log(`Achou mais ${this.limit} newsletters`);
+      this.emailsQueue.add({ newsletters: newsletters.map((n) => n.toJSON()) });
     }
   }
 }
